@@ -71,7 +71,14 @@ configuration CreateADPDC
         [String[]]$DNSForwarders = @('168.63.129.16')
     ) 
     
-    Import-DscResource -ModuleName ActiveDirectoryDsc, xStorage, xNetworking, xDnsServer, PSDesiredStateConfiguration, xPendingReboot
+    Import-DscResource -ModuleName xPendingReboot
+    Import-DscResource -ModuleName ActiveDirectoryDsc -ModuleVersion 6.4.0
+	Import-DscResource -ModuleName xDNSServer -ModuleVersion 1.16.0.0
+	Import-DscResource -ModuleName xStorage
+ 	Import-DscResource -ModuleName xNetworking
+    Import-DscResource -modulename xPendingReboot
+  	Import-DscResource -ModuleName PSDesiredStateConfiguration
+ 
     
     # Get primary network interface
     $Interface = Get-NetAdapter | Where-Object Name -Like "Ethernet*" | Select-Object -First 1
