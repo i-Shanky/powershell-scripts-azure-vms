@@ -63,8 +63,8 @@ configuration CreateADPDC
         [String[]]$DNSForwarders = @('168.63.129.16')
     ) 
     
-    Import-DscResource -ModuleName ActiveDirectoryDsc -ModuleVersion 6.4.0
-	Import-DscResource -ModuleName xDNSServer -ModuleVersion 1.16.0.0
+    Import-DscResource -ModuleName ActiveDirectoryDsc
+	Import-DscResource -ModuleName xDNSServer
 	Import-DscResource -ModuleName xStorage
  	Import-DscResource -ModuleName xNetworking
     Import-DscResource -modulename xPendingReboot
