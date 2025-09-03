@@ -301,12 +301,51 @@ configuration CreateADPDC
 
     # Compile the configuration
     Write-Output "Compiling DSC Configuration..."
-    CreateADPDC -DomainName $DomainName -AdminCreds $AdminCreds -DomainCreds $DomainCreds -OutputPath "C:\DSC"
+    try {
+        CreateADPDC -DomainName $DomainName -AdminCreds $AdminCreds -DomainCreds $DomainCreds -OutputPath "C:\DSC"
 
-    # Apply the configuration
-    Write-Output "Applying DSC Configuration..."
-    Set-DscLocalConfigurationManager -Path "C:\DSC" -Verbose
-    Start-DscConfiguration -Path "C:\DSC" -Wait -Verbose -Force
+        # Apply the configuration
+        Write-Output "Applying DSC Configuration..."
+        Set-DscLocalConfigurationManager -Path "C:\DSC" -Verbose -Force
+        Start-DscConfiguration -Path "C:\DSC" -Wait -Verbose -Force
+        
+        Write-Output "DSC Configuration applied successfully"
+    } catch {
+        Write-Warning "DSC Configuration failed: $($_.Exception.Message)"
+        Write-Output "Falling back to traditional installation method..."
+        
+        # Fallback installation using Server Manager
+        Write-Output "Installing Active Directory using Server Manager..."
+        
+        # Install features
+        Install-WindowsFeature -Name AD-Domain-Services, DNS, RSAT-AD-Tools, RSAT-DNS-Server, GPMC -IncludeManagementTools
+        
+        # Initialize and format data disk
+        Write-Output "Preparing data disk..."
+        $disk = Get-Disk | Where-Object PartitionStyle -eq 'RAW' | Select-Object -First 1
+        if ($disk) {
+            Initialize-Disk -Number $disk.Number -PartitionStyle GPT
+            New-Partition -DiskNumber $disk.Number -DriveLetter F -UseMaximumSize
+            Format-Volume -DriveLetter F -FileSystem NTFS -NewFileSystemLabel "AD_DATA" -Confirm:$false
+        }
+        
+        # Create AD forest
+        Write-Output "Creating Active Directory forest..."
+        Install-ADDSForest `
+            -DomainName $DomainName `
+            -DomainMode "2016" `
+            -ForestMode "2016" `
+            -DatabasePath "F:\NTDS" `
+            -LogPath "F:\NTDS" `
+            -SysvolPath "F:\SYSVOL" `
+            -SafeModeAdministratorPassword $AdminCreds.Password `
+            -CreateDnsDelegation:$false `
+            -InstallDns:$true `
+            -NoRebootOnCompletion:$false `
+            -Force:$true
+            
+        Write-Output "Traditional installation completed"
+    }
 
     # Wait for domain to be ready
     Write-Output "Waiting for domain to be fully configured..."
