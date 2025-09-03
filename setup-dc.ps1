@@ -38,14 +38,6 @@ try {
         }
     }
 
-    # Import required modules
-    Write-Output "Importing PowerShell modules..."
-    Import-Module ActiveDirectoryDsc -Force
-    Import-Module xStorage -Force
-    Import-Module xNetworking -Force
-    Import-Module xDnsServer -Force
-    Import-Module xPendingReboot -Force
-
     # Create DSC Configuration
     Write-Output "Creating DSC Configuration..."
     
@@ -71,7 +63,6 @@ configuration CreateADPDC
         [String[]]$DNSForwarders = @('168.63.129.16')
     ) 
     
-    Import-DscResource -ModuleName xPendingReboot
     Import-DscResource -ModuleName ActiveDirectoryDsc -ModuleVersion 6.4.0
 	Import-DscResource -ModuleName xDNSServer -ModuleVersion 1.16.0.0
 	Import-DscResource -ModuleName xStorage
