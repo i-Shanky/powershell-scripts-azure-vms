@@ -27,6 +27,7 @@ try {
 
     # Install required PowerShell modules
     Write-Output "Installing required PowerShell modules..."
+	Install-PackageProvider -Name NuGet -MinimumVersion 2.8.5.201 -Force
     $modules = @('ActiveDirectoryDsc', 'xStorage', 'xNetworking', 'xDnsServer', 'xPendingReboot')
     
     foreach ($module in $modules) {
